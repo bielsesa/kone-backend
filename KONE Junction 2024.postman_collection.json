@@ -1,0 +1,166 @@
+{
+	"info": {
+		"_postman_id": "e708ff15-cb5b-4a6d-81b1-25d8294019d1",
+		"name": "KONE Junction 2024",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "8962894"
+	},
+	"item": [
+		{
+			"name": "Create building (project)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Empire State Building\",\r\n  \"address\": \"20 W 34th St\",\r\n  \"city\": \"New York\",\r\n  \"zip\": \"10118\",\r\n  \"lat\": 40.748817,\r\n  \"lng\": -73.985428,\r\n  \"floors\": 102\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5050/buildings",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5050",
+					"path": [
+						"buildings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get buildings",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5050/buildings",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5050",
+					"path": [
+						"buildings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Sign up",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"testuser\",\r\n    \"password\": \"testpassword\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5050/auth/signup",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5050",
+					"path": [
+						"auth",
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Log in",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"testuser\",\r\n    \"password\": \"testpassword\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5050/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5050",
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{TOKEN}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"pm.sendRequest({\r",
+					"    url: \"http://localhost:5050/auth/login\",\r",
+					"    method: 'POST',\r",
+					"    header: {\r",
+					"        'content-type': 'application/json'\r",
+					"    },\r",
+					"    body: {\r",
+					"        mode: 'raw',\r",
+					"        raw: JSON.stringify({\r",
+					"            \"username\": \"testuser\",\r",
+					"            \"password\": \"testpassword\"\r",
+					"        })\r",
+					"    }\r",
+					"}, (err, res) => pm.collectionVariables.set(\"TOKEN\", res.json().token));"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "TOKEN",
+			"value": ""
+		}
+	]
+}
