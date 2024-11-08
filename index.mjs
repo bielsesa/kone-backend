@@ -14,6 +14,7 @@ import authRouter from "./routes/auth.mjs";
 
 // Load all middleware
 import { authenticateToken } from "./middleware/auth.js";
+import helmet from "helmet";
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -23,6 +24,9 @@ app.use(express.json());
 
 // Authentication routes
 app.use("/auth", authRouter);
+
+// Add Helmet middleware to enhance security
+app.use(helmet());
 
 // Load the /buildings routes, protected
 app.use("/buildings", authenticateToken, buildings);
