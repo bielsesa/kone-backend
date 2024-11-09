@@ -19,11 +19,11 @@ const buildingSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
-    models: [{
+    model: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Model",
         required: false
-    }]
+    }
 });
 
 const Building = mongoose.model("Building", buildingSchema);

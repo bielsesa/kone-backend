@@ -1,3 +1,94 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     File:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The automatically generated ID of the file
+ *         filename:
+ *           type: string
+ *           description: The name of the file
+ *         contentType:
+ *           type: string
+ *           description: The MIME type of the file
+ *         length:
+ *           type: integer
+ *           description: The size of the file in bytes
+ *         uploadDate:
+ *           type: string
+ *           format: date-time
+ *           description: The date when the file was uploaded
+ */
+
+/**
+ * @swagger
+ * /files/upload:
+ *   post:
+ *     summary: Upload file
+ *     description: Upload a file to MongoDB using GridFS
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: File uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 file:
+ *                   $ref: '#/components/schemas/File'
+ *       400:
+ *         description: Error uploading file
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ */
+
+/**
+ * @swagger
+ * /files/{id}:
+ *   get:
+ *     summary: Get file
+ *     description: Get a file by ID from MongoDB using GridFS
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the file
+ *     responses:
+ *       200:
+ *         description: File retrieved successfully
+ *         content:
+ *           application/octet-stream:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: File not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 err:
+ *                   type: string
+ */
+
 import express from "express";
 import multer from "multer";
 import { GridFsStorage } from "multer-gridfs-storage";

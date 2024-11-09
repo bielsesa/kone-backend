@@ -6,6 +6,8 @@ import "./db/conn.mjs";
 
 import express from "express";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
+import swaggerJsdoc from "swagger-jsdoc";
 
 // Load routes
 import buildings from "./routes/buildings.mjs";
@@ -16,18 +18,27 @@ import authRouter from "./routes/auth.mjs";
 // Load all middleware
 import { authenticateToken } from "./middleware/auth.js";
 import helmet from "helmet";
+import swaggerDefinition from "./swaggerDefinition.js";
 
 const PORT = process.env.PORT || 5050;
 const app = express();
 
+// Initialize Swagger-jsdoc
+const specs = swaggerJsdoc({
+    swaggerDefinition,
+    apis: ["./routes/*.mjs"], // Define the paths to your route files
+});
+
+// Use middleware
 app.use(cors());
 app.use(express.json());
+app.use(helmet());
+
+// Use Swagger
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 // Authentication routes
 app.use("/auth", authRouter);
-
-// Add Helmet middleware to enhance security
-app.use(helmet());
 
 // Load the /buildings routes, protected
 app.use("/buildings", authenticateToken, buildings);
