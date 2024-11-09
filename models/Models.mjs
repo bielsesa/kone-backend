@@ -16,6 +16,11 @@ const modelSchema = new mongoose.Schema({
     building: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Building"
+    },
+    file: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "fs.files", // Reference to the files collection used by GridFS
+        required: true
     }
 });
 
