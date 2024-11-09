@@ -2,25 +2,27 @@ import mongoose from "../db/conn.mjs";
 import { v4 as uuidV4 } from "uuid";
 
 // Common schema field options
-const requiredString = { type: String, required: false };
+const requiredNumber = { type: Number, required: true };
 const notRequiredString = { type: String, required: false };
-const requiredNumber = { type: Number, required: false };
+const notRequiredNumber = { type: Number, required: false };
 
 // Building schema definition
 const buildingSchema = new mongoose.Schema({
     buildingId: { type: String, default: uuidV4, unique: true, required: true },
-    name: requiredString,
-    createdBy: requiredString,
-    address: notRequiredString,
-    city: notRequiredString,
-    zip: notRequiredString,
-    lat: requiredNumber,
-    lng: requiredNumber,
     floors: requiredNumber,
     floorHeight: requiredNumber,
+    name: notRequiredString,
+    lat: notRequiredNumber,
+    lng: notRequiredNumber,
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
     models: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Model"
+        ref: "Model",
+        required: false
     }]
 });
 
