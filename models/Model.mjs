@@ -1,23 +1,6 @@
 import mongoose from "../db/conn.mjs";
 import { v4 as uuidV4 } from "uuid";
 
-// Define sub-schema for STL and GLB file information with versioning
-const modelFileSchema = new mongoose.Schema({
-    version: {
-        type: Number,
-        required: true
-    },
-    twoDimensions: {
-        type: Object,
-        required: true
-    },
-    glb: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "fs.files", // Reference to the files collection used by GridFS
-        required: true
-    }
-}, { _id: false }); // _id: false to avoid creating _id for sub-documents
-
 // Main model schema
 const modelSchema = new mongoose.Schema({
     modelId: {
@@ -26,13 +9,24 @@ const modelSchema = new mongoose.Schema({
         unique: true,
         required: true
     },
+    imgBlueprint: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "fs.files" // Reference to the files collection used by GridFS
+    },
+    jsonBlueprint: {
+        type: Object
+    },
     surfaceModel: {
-        type: [modelFileSchema],
-        required: true
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "fs.files" // Reference to the files collection used by GridFS
     },
     undergroundModel: {
-        type: [modelFileSchema],
-        required: false
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "fs.files" // Reference to the files collection used by GridFS
+    },
+    elevatorModel: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "fs.files" // Reference to the files collection used by GridFS
     },
     building: {
         type: mongoose.Schema.Types.ObjectId,

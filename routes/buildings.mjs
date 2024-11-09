@@ -1,5 +1,6 @@
 import express from 'express';
 import Building from '../models/Building.mjs';
+import User from "../models/User.mjs";
 
 const router = express.Router();
 
@@ -10,31 +11,30 @@ const router = express.Router();
  *     Building:
  *       type: object
  *       required:
- *         - floors
- *         - floorHeight
+ *         - buildingId
  *         - createdBy
  *       properties:
  *         buildingId:
  *           type: string
  *           description: The unique ID of the building
- *         floors:
- *           type: number
- *           description: The number of floors in the building
- *         floorHeight:
- *           type: number
- *           description: The height of each floor in the building
  *         name:
  *           type: string
  *           description: The name of the building
+ *         address:
+ *           type: string
+ *           description: The address of the building
+ *         zip:
+ *           type: string
+ *           description: The zip code of the building's location
  *         lat:
  *           type: number
- *           description: The latitude of the building location
+ *           description: The latitude of the building's location
  *         lng:
  *           type: number
- *           description: The longitude of the building location
- *         createdBy:
+ *           description: The longitude of the building's location
+ *         createdByUsername:
  *           type: string
- *           description: The ID of the user who created the building
+ *           description: The username of the user who created the building
  *         model:
  *           type: string
  *           description: The ID of the associated model
@@ -51,7 +51,22 @@ const router = express.Router();
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Building'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               zip:
+ *                 type: string
+ *               lat:
+ *                 type: number
+ *               lng:
+ *                 type: number
+ *               createdByUsername:
+ *                 type: string
+ *               model:
+ *                 type: string
  *     responses:
  *       201:
  *         description: Building created successfully
@@ -154,7 +169,22 @@ const router = express.Router();
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Building'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               zip:
+ *                 type: string
+ *               lat:
+ *                 type: number
+ *               lng:
+ *                 type: number
+ *               createdByUsername:
+ *                 type: string
+ *               model:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Building updated successfully
@@ -182,59 +212,31 @@ const router = express.Router();
  *                   type: string
  */
 
-/**
- * @swagger
- * /buildings/{id}:
- *   delete:
- *     summary: Delete a building by ID
- *     description: Remove a building from the database by its ID
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: The ID of the building
- *     responses:
- *       200:
- *         description: Building deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *       404:
- *         description: Building not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *       400:
- *         description: Error deleting building
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- */
-
 // Create a new building
 router.post('/', async (req, res) => {
-    const { floors, floorHeight, name, lat, lng, createdBy, model } = req.body;
-    const building = new Building({ floors, floorHeight, name, lat, lng, createdBy, model });
+    const {name, address, zip, lat, lng, createdByUsername, model} = req.body;
 
     try {
+        // Find the user by username
+        const user = await User.findOne({username: createdByUsername}).exec();
+        if (!user) {
+            return res.status(400).json({error: 'User not found'});
+        }
+
+        const building = new Building({
+            name,
+            address,
+            zip,
+            lat,
+            lng,
+            createdBy: user._id,
+            model,
+            createdAt: new Date()
+        });
         const savedBuilding = await building.save();
         res.status(201).json(savedBuilding);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(400).json({error: error.message});
     }
 });
 

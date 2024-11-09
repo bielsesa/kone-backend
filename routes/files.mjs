@@ -2,67 +2,62 @@
  * @swagger
  * components:
  *   schemas:
- *     File:
+ *     FileUpload:
+ *       type: object
+ *       required:
+ *         - file
+ *       properties:
+ *         file:
+ *           type: string
+ *           format: binary
+ *           description: The file to upload
+ *     FileResponse:
  *       type: object
  *       properties:
- *         _id:
+ *         file:
  *           type: string
- *           description: The automatically generated ID of the file
- *         filename:
+ *           description: The ID of the uploaded file
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         err:
  *           type: string
- *           description: The name of the file
- *         contentType:
- *           type: string
- *           description: The MIME type of the file
- *         length:
- *           type: integer
- *           description: The size of the file in bytes
- *         uploadDate:
- *           type: string
- *           format: date-time
- *           description: The date when the file was uploaded
+ *           description: The error message
  */
 
 /**
  * @swagger
  * /files/upload:
  *   post:
- *     summary: Upload file
- *     description: Upload a file to MongoDB using GridFS
+ *     summary: Upload file to MongoDB using GridFS
+ *     description: Upload a file to MongoDB's GridFS
  *     requestBody:
  *       required: true
  *       content:
  *         multipart/form-data:
  *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
+ *             $ref: '#/components/schemas/FileUpload'
  *     responses:
  *       201:
  *         description: File uploaded successfully
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 file:
- *                   $ref: '#/components/schemas/File'
- *       400:
+ *               $ref: '#/components/schemas/FileResponse'
+ *       500:
  *         description: Error uploading file
  *         content:
  *           application/json:
  *             schema:
- *               type: string
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 
 /**
  * @swagger
  * /files/{id}:
  *   get:
- *     summary: Get file
- *     description: Get a file by ID from MongoDB using GridFS
+ *     summary: Get file by ID from MongoDB using GridFS
+ *     description: Retrieve a file by its ID from MongoDB's GridFS
  *     parameters:
  *       - in: path
  *         name: id
@@ -72,7 +67,7 @@
  *         description: The ID of the file
  *     responses:
  *       200:
- *         description: File retrieved successfully
+ *         description: File fetched successfully
  *         content:
  *           application/octet-stream:
  *             schema:
@@ -83,55 +78,76 @@
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 err:
- *                   type: string
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Error fetching file
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-
 import express from "express";
-import multer from "multer";
-import { GridFsStorage } from "multer-gridfs-storage";
 import { gfs } from "../db/conn.mjs";
 import { ObjectId } from "mongodb";
+import { GridFSBucket } from 'mongodb';
+import fs from 'fs';
+import path from 'path';
 
 const router = express.Router();
 
-// Configure storage engine for GridFS
-const storage = new GridFsStorage({
-    url: `${process.env.ATLAS_URI}/${process.env.DB_NAME}?${process.env.CONNECTION_PARAMS}`,
-    options: { useNewUrlParser: true, useUnifiedTopology: true },
-    file: (req, file) => {
-        return new Promise((resolve, reject) => {
-            const filename = `${Date.now()}-${file.originalname}`;
-            const fileInfo = {
-                filename,
-                bucketName: "uploads"
-            };
-            resolve(fileInfo);
-        });
-    }
-});
-const upload = multer({ storage });
-
 // @route POST /files/upload
 // @desc Upload file to MongoDB using GridFS
-router.post("/upload", upload.single("file"), (req, res) => {
-    res.status(201).json({ file: req.file });
+router.post("/upload", (req, res) => {
+    if (!gfs) {
+        return res.status(500).json({ err: "GridFSBucket not initialized" });
+    }
+
+    req.pipe(req.busboy);
+
+    req.busboy.on('file', (fieldname, file, filename) => {
+        const uploadStream = gfs.openUploadStream(filename, {
+            contentType: file.mimetype
+        });
+
+        file.pipe(uploadStream);
+
+        uploadStream.on('error', (error) => {
+            console.error('Upload Error:', error);
+            res.status(500).json({ err: 'Upload failed' });
+        });
+
+        uploadStream.on('finish', () => {
+            res.status(201).json({ file: uploadStream.id });
+        });
+    });
 });
 
 // @route GET /files/:id
 // @desc Get file by ID from MongoDB using GridFS
-router.get("/:id", (req, res) => {
-    const fileId = new ObjectId(req.params.id);
-    gfs.files.findOne({ _id: fileId }, (err, file) => {
-        if (!file || file.length === 0) {
+router.get("/:id", async (req, res) => {
+    try {
+        if (!gfs) {
+            return res.status(500).json({ err: "GridFSBucket not initialized" });
+        }
+
+        const fileId = new ObjectId(req.params.id);
+
+        const files = await gfs.find({ _id: fileId }).toArray();
+
+        if (!files || files.length === 0) {
             return res.status(404).json({ err: "No file exists" });
         }
 
-        const readstream = gfs.createReadStream(file.filename);
+        const file = files[0];
+
+        res.set('Content-Type', file.contentType);
+        const readstream = gfs.openDownloadStream(fileId);
         readstream.pipe(res);
-    });
+
+    } catch (error) {
+        console.error('Error fetching file:', error);
+        res.status(500).send('Error fetching file');
+    }
 });
 
 export default router;

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import grid from "gridfs-stream";
+import { GridFSBucket } from 'mongodb';
 
 const baseConnectionString = process.env.ATLAS_URI || "";
 const dbName = process.env.DB_NAME || "";
@@ -13,22 +13,17 @@ if (!baseConnectionString || !dbName || !connectionParams) {
     const connectionString = `${baseConnectionString}/${dbName}?${connectionParams}`;
     console.log(`Using connection string: ${connectionString}`);
 
-    const conn = mongoose.createConnection(connectionString, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
+    const conn = mongoose.createConnection(connectionString, { });
 
     conn.once("open", () => {
         // Initialize GridFS
-        gfs = grid(conn.db, mongoose.mongo);
-        gfs.collection("uploads");
-        console.log("GridFS initialized");
+        gfs = new GridFSBucket(conn.db, {
+            bucketName: 'uploads',
+        });
+        console.log("GridFSBucket initialized");
     });
 
-    mongoose.connect(connectionString, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    })
+    mongoose.connect(connectionString, { })
         .then(() => console.log("MongoDB connected"))
         .catch(err => console.error("Error connecting to MongoDB:", err));
 }
