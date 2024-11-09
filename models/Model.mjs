@@ -7,7 +7,7 @@ const modelFileSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    stl: {
+    twoDimensions: {
         type: Object,
         required: true
     },
