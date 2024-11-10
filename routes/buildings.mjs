@@ -84,6 +84,53 @@ const router = express.Router();
  *                 error:
  *                   type: string
  */
+router.post('/', async (req, res) => {
+    try {
+        const {
+            name,
+            address,
+            zip,
+            lat,
+            lng,
+            createdByUsername,
+            imgBlueprint,
+            jsonBlueprint,
+            surfaceModel,
+            undergroundModel,
+            elevatorModel,
+            surfaceFloors,
+            undergroundFloors
+        } = req.body;
+
+        // Find the user by username
+        const user = await User.findOne({ username: createdByUsername });
+        if (!user) {
+            return res.status(400).json({ error: 'User not found' });
+        }
+
+        // Create new building
+        const newBuilding = new Building({
+            name,
+            address,
+            zip,
+            lat,
+            lng,
+            createdBy: user._id,
+            imgBlueprint,
+            jsonBlueprint,
+            surfaceModel,
+            undergroundModel,
+            elevatorModel,
+            surfaceFloors,
+            undergroundFloors
+        });
+
+        const savedBuilding = await newBuilding.save();
+        res.status(201).json(savedBuilding);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
 
 /**
  * @swagger
@@ -110,6 +157,14 @@ const router = express.Router();
  *                 error:
  *                   type: string
  */
+router.get('/', async (req, res) => {
+    try {
+        const buildings = await Building.find().populate('createdBy', 'username');
+        res.status(200).json(buildings);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
 
 /**
  * @swagger
@@ -150,20 +205,33 @@ const router = express.Router();
  *                 error:
  *                   type: string
  */
+router.get('/:id', async (req, res) => {
+    try {
+        const buildingId = req.params.id;
+        const building = await Building.findById(buildingId).populate('createdBy', 'username');
+        if (!building) {
+            return res.status(404).json({ error: 'Building not found' });
+        }
+        res.status(200).json(building);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 
 /**
  * @swagger
  * /buildings/{id}:
  *   put:
  *     summary: Update a building by ID
- *     description: Update the details of a building by its ID
+ *     description: Modify the details of an existing building by its ID
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: The ID of the building
+ *         description: The ID of the building to update
  *     requestBody:
  *       required: true
  *       content:
@@ -192,15 +260,6 @@ const router = express.Router();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Building'
- *       404:
- *         description: Building not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
  *       400:
  *         description: Error updating building
  *         content:
@@ -210,89 +269,72 @@ const router = express.Router();
  *               properties:
  *                 error:
  *                   type: string
+ *       404:
+ *         description: Building not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  */
-
-// Create a new building
-router.post('/', async (req, res) => {
-    const {name, address, zip, lat, lng, createdByUsername, model} = req.body;
-
+router.put('/:id', async (req, res) => {
     try {
-        // Find the user by username
-        const user = await User.findOne({username: createdByUsername}).exec();
-        if (!user) {
-            return res.status(400).json({error: 'User not found'});
-        }
-
-        const building = new Building({
+        const buildingId = req.params.id;
+        const {
             name,
             address,
             zip,
             lat,
             lng,
-            createdBy: user._id,
-            model,
-            createdAt: new Date()
-        });
-        const savedBuilding = await building.save();
-        res.status(201).json(savedBuilding);
+            createdByUsername,
+            imgBlueprint,
+            jsonBlueprint,
+            surfaceModel,
+            undergroundModel,
+            elevatorModel,
+            surfaceFloors,
+            undergroundFloors
+        } = req.body;
+
+        // Find the user by username if provided
+        let user = null;
+        if (createdByUsername) {
+            user = await User.findOne({username: createdByUsername});
+            if (!user) {
+                return res.status(400).json({error: 'User not found'});
+            }
+        }
+
+        // Find the building by ID and update it
+        const updatedBuilding = await Building.findByIdAndUpdate(
+            buildingId,
+            {
+                name,
+                address,
+                zip,
+                lat,
+                lng,
+                ...(user && {createdBy: user._id}),
+                imgBlueprint,
+                jsonBlueprint,
+                surfaceModel,
+                undergroundModel,
+                elevatorModel,
+                surfaceFloors,
+                undergroundFloors
+            },
+            {new: true, runValidators: true}
+        );
+
+        if (!updatedBuilding) {
+            return res.status(404).json({error: 'Building not found'});
+        }
+
+        res.status(200).json(updatedBuilding);
     } catch (error) {
         res.status(400).json({error: error.message});
-    }
-});
-
-// Retrieve all buildings
-router.get('/', async (req, res) => {
-    try {
-        const buildings = await Building.find();
-        res.status(200).json(buildings);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// Retrieve a building by ID
-router.get('/:id', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const building = await Building.findById(id);
-        if (!building) {
-            return res.status(404).json({ error: 'Building not found' });
-        }
-        res.status(200).json(building);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// Update a building by ID
-router.put('/:id', async (req, res) => {
-    const { id } = req.params;
-    const updates = req.body;
-
-    try {
-        const building = await Building.findByIdAndUpdate(id, updates, { new: true });
-        if (!building) {
-            return res.status(404).json({ error: 'Building not found' });
-        }
-        res.status(200).json(building);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// Delete a building by ID
-router.delete('/:id', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const building = await Building.findByIdAndDelete(id);
-        if (!building) {
-            return res.status(404).json({ error: 'Building not found' });
-        }
-        res.status(200).json({ message: 'Building deleted successfully' });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
     }
 });
 

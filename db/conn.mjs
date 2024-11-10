@@ -1,11 +1,8 @@
 import mongoose from "mongoose";
-import { GridFSBucket } from 'mongodb';
 
 const baseConnectionString = process.env.ATLAS_URI || "";
 const dbName = process.env.DB_NAME || "";
 const connectionParams = process.env.CONNECTION_PARAMS || "";
-
-let gfs;
 
 if (!baseConnectionString || !dbName || !connectionParams) {
     console.error("ATLAS_URI or DB_NAME or CONNECTION_PARAMS is not defined");
@@ -13,15 +10,7 @@ if (!baseConnectionString || !dbName || !connectionParams) {
     const connectionString = `${baseConnectionString}/${dbName}?${connectionParams}`;
     console.log(`Using connection string: ${connectionString}`);
 
-    const conn = mongoose.createConnection(connectionString, { });
-
-    conn.once("open", () => {
-        // Initialize GridFS
-        gfs = new GridFSBucket(conn.db, {
-            bucketName: 'uploads',
-        });
-        console.log("GridFSBucket initialized");
-    });
+    mongoose.createConnection(connectionString, { });
 
     mongoose.connect(connectionString, { })
         .then(() => console.log("MongoDB connected"))
@@ -29,4 +18,3 @@ if (!baseConnectionString || !dbName || !connectionParams) {
 }
 
 export default mongoose;
-export { gfs };

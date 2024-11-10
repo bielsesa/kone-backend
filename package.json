@@ -11,6 +11,7 @@
     "dev": "nodemon --experimental-modules index.mjs"
   },
   "dependencies": {
+    "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "bson": "^6.9.0",
     "busboy": "^1.6.0",

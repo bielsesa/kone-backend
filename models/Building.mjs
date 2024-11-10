@@ -4,6 +4,7 @@ import { v4 as uuidV4 } from "uuid";
 // Common schema field options
 const optionalString = { type: String, required: false };
 const optionalNumber = { type: Number, required: false };
+const emptyString = { type: String, default: "", required: false };
 
 // Building schema definition
 const buildingSchema = new mongoose.Schema({
@@ -21,13 +22,17 @@ const buildingSchema = new mongoose.Schema({
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true
+        default: "testuser"
     },
-    model: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Model",
-        required: false
-    }
+    imgBlueprint: emptyString,
+    jsonBlueprint: {
+        type: Object
+    },
+    surfaceModel: emptyString,
+    undergroundModel: emptyString,
+    elevatorModel: emptyString,
+    surfaceFloors: optionalNumber,
+    undergroundFloors: optionalNumber,
 });
 
 const Building = mongoose.model("Building", buildingSchema);

@@ -11,9 +11,8 @@ import swaggerJsdoc from "swagger-jsdoc";
 
 // Load routes
 import buildings from "./routes/buildings.mjs";
-import models from "./routes/models.mjs";
-import files from "./routes/files.mjs";
 import authRouter from "./routes/auth.mjs";
+import genApi from "./routes/python.mjs";
 
 // Load all middleware
 import { authenticateToken } from "./middleware/auth.js";
@@ -30,27 +29,32 @@ const specs = swaggerJsdoc({
     apis: ["./routes/*.mjs"], // Define the paths to your route files
 });
 
+// Define CORS options to allow any origin
+const corsOptions = {
+    origin: "*", // Allows any origin
+    optionsSuccessStatus: 200,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    preflightContinue: false
+};
+
 // Use middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(helmet());
 app.use(busboy());
 
-// Use Swagger
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+app.options('*', cors(corsOptions));
 
 // Authentication routes
 app.use("/auth", authRouter);
 
 // Load the /buildings routes, protected
-app.use("/buildings", authenticateToken, buildings);
+// app.use("/buildings", authenticateToken, buildings);
+app.use("/buildings", buildings);
 
-// Load the /models routes, protected
-app.use("/models", authenticateToken, models);
-
-// Load the /files routes, protected
-// app.use("/files", authenticateToken, files);
-app.use("/files", files);
+// Use Swagger
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+app.use("/python", genApi);
 
 // Global error handling
 app.use((err, _req, res, next) => {
