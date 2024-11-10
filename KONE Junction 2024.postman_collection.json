@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"name\": \"New Building\",\r\n  \"createdBy\": \"{{username}}\",\r\n  \"address\": \"Calle Piruleta\",\r\n  \"city\": \"Vilafranca del Penedes\",\r\n  \"zip\": \"08720 \",\r\n  \"lat\": 40.748817,\r\n  \"lng\": -73.985428,\r\n  \"floors\": 102,\r\n  \"floorHeight\": 3\r\n}",
+							"raw": "{\r\n  \"id\": 4,\r\n  \"name\": \"Edifici Terrassa\",\r\n  \"address\": \"Carrer Roca, 9\",\r\n  \"zip\": \"08570\",\r\n  \"lat\": 41.53,\r\n  \"lng\": 2.12,\r\n  \"createdByUsername\": \"{{username}}\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -24,12 +24,14 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:{{port}}/buildings",
-							"protocol": "http",
+							"raw": "https://kwqr317z-5050.uks1.devtunnels.ms/buildings",
+							"protocol": "https",
 							"host": [
-								"localhost"
+								"kwqr317z-5050",
+								"uks1",
+								"devtunnels",
+								"ms"
 							],
-							"port": "{{port}}",
 							"path": [
 								"buildings"
 							]
@@ -84,6 +86,37 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Generate building model",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"buildingId\": \"672ffc91d7694afa2d6f3dc1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://kwqr317z-5050.uks1.devtunnels.ms/buildings/generate",
+							"protocol": "https",
+							"host": [
+								"kwqr317z-5050",
+								"uks1",
+								"devtunnels",
+								"ms"
+							],
+							"path": [
+								"buildings",
+								"generate"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -97,7 +130,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"testuser\",\r\n    \"password\": \"testpassword\"\r\n}",
+							"raw": "{\r\n    \"username\": \"{{username}}\",\r\n    \"password\": \"{{password}}\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -105,12 +138,14 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:{{port}}/auth/signup",
-							"protocol": "http",
+							"raw": "https://kwqr317z-5050.uks1.devtunnels.ms/auth/signup",
+							"protocol": "https",
 							"host": [
-								"localhost"
+								"kwqr317z-5050",
+								"uks1",
+								"devtunnels",
+								"ms"
 							],
-							"port": "{{port}}",
 							"path": [
 								"auth",
 								"signup"
@@ -151,55 +186,35 @@
 			]
 		},
 		{
-			"name": "Files",
-			"item": [
-				{
-					"name": "Upload a file",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "file",
-							"file": {
-								"src": "/C:/Users/Noah/Documents/test.txt"
-							}
-						},
-						"url": {
-							"raw": "http://localhost:{{port}}/files/upload",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "{{port}}",
-							"path": [
-								"files",
-								"upload"
-							]
+			"name": "Generate model from Python API",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"outer_walls\": [[0, 0], [10, 0], [10, 20], [-10, 20], [-10, 10], [0, 10]],\r\n    \"inner_walls\": [[[-5, 10], [-5, 20]], [[-5, 15], [10, 15]]],\r\n    \"elevator\": null,\r\n    \"floor_height\": 3.0,\r\n    \"floors\": 4,\r\n    \"underground_floors\": 3,\r\n    \"return_glb\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
 						}
-					},
-					"response": []
+					}
 				},
-				{
-					"name": "Download file",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:{{port}}/files/672fa35bcedd603a5dbe5943",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "{{port}}",
-							"path": [
-								"files",
-								"672fa35bcedd603a5dbe5943"
-							]
-						}
-					},
-					"response": []
+				"url": {
+					"raw": "https://kwqr317z-5050.uks1.devtunnels.ms/python/generate",
+					"protocol": "https",
+					"host": [
+						"kwqr317z-5050",
+						"uks1",
+						"devtunnels",
+						"ms"
+					],
+					"path": [
+						"python",
+						"generate"
+					]
 				}
-			]
+			},
+			"response": []
 		}
 	],
 	"auth": {
@@ -219,20 +234,20 @@
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
-					"pm.sendRequest({\r",
-					"    url: \"http://localhost:5050/auth/login\",\r",
-					"    method: 'POST',\r",
-					"    header: {\r",
-					"        'content-type': 'application/json'\r",
-					"    },\r",
-					"    body: {\r",
-					"        mode: 'raw',\r",
-					"        raw: JSON.stringify({\r",
-					"            \"username\": \"testuser\",\r",
-					"            \"password\": \"testpassword\"\r",
-					"        })\r",
-					"    }\r",
-					"}, (err, res) => pm.collectionVariables.set(\"TOKEN\", res.json().token));"
+					"// pm.sendRequest({\r",
+					"//     url: \"http://localhost:5050/auth/login\",\r",
+					"//     method: 'POST',\r",
+					"//     header: {\r",
+					"//         'content-type': 'application/json'\r",
+					"//     },\r",
+					"//     body: {\r",
+					"//         mode: 'raw',\r",
+					"//         raw: JSON.stringify({\r",
+					"//             \"username\": \"testuser\",\r",
+					"//             \"password\": \"testpassword\"\r",
+					"//         })\r",
+					"//     }\r",
+					"// }, (err, res) => pm.collectionVariables.set(\"TOKEN\", res.json().token));"
 				]
 			}
 		},
