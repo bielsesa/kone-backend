@@ -9,6 +9,7 @@ const emptyString = { type: String, default: "", required: false };
 // Building schema definition
 const buildingSchema = new mongoose.Schema({
     buildingId: { type: String, default: uuidV4, unique: true, required: true },
+    id: { type: Number },
     name: optionalString,
     address: optionalString,
     zip: optionalString,

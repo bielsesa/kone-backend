@@ -88,6 +88,7 @@ const router = express.Router();
 router.post('/', async (req, res) => {
     try {
         const {
+            id,
             name,
             address,
             zip,
@@ -111,6 +112,7 @@ router.post('/', async (req, res) => {
 
         // Create new building
         const newBuilding = new Building({
+            id,
             name,
             address,
             zip,
@@ -284,6 +286,7 @@ router.put('/:id', async (req, res) => {
     try {
         const buildingId = req.params.id;
         const {
+            id,
             name,
             address,
             zip,
@@ -312,6 +315,7 @@ router.put('/:id', async (req, res) => {
         const updatedBuilding = await Building.findByIdAndUpdate(
             buildingId,
             {
+                id,
                 name,
                 address,
                 zip,
