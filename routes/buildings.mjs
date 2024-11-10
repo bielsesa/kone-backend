@@ -1,6 +1,7 @@
 import express from 'express';
 import Building from '../models/Building.mjs';
 import User from "../models/User.mjs";
+import fetchDataFromApi from "../utils/fetchDataFromApi.mjs";
 
 const router = express.Router();
 
@@ -335,6 +336,44 @@ router.put('/:id', async (req, res) => {
         res.status(200).json(updatedBuilding);
     } catch (error) {
         res.status(400).json({error: error.message});
+    }
+});
+
+
+router.post("/generate", async (req, res) => {
+    const apiUrl = process.env.GENERATIVE_API_URI;
+
+    // Get building from buildingId passed in the body
+    const {buildingId} = req.body;
+    if (!buildingId) {
+        return res.status(400).send("Building ID is required");
+    }
+
+    try {
+        const building = await Building.findById(buildingId);
+        if (!building) {
+            return res.status(404).send("Building not found");
+        }
+
+        // Get the jsonBlueprint from the building
+        const {jsonBlueprint} = building;
+
+        // Pass this data to the fetchDataFromApi method
+        const data = await fetchDataFromApi(apiUrl, jsonBlueprint);
+
+        // Update the building with the result received
+        building.surfaceModel = data.above_file;
+        building.undergroundModel = data.under_file;
+        if (data.elevator_file != null) {
+            building.elevatorModel = data.elevator_file;
+        }
+
+        // Save the updated building
+        await building.save();
+
+        res.status(200).json(building);
+    } catch (error) {
+        res.status(500).send("Error processing the request");
     }
 });
 

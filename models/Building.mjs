@@ -21,8 +21,7 @@ const buildingSchema = new mongoose.Schema({
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        default: "testuser"
+        ref: "User"
     },
     imgBlueprint: emptyString,
     jsonBlueprint: {
